@@ -26,6 +26,24 @@ static const struct libinput_interface libinput_iface = {
 	.close_restricted = close_restricted,
 };
 
+static void
+libopeninput_log_handler(struct libinput *libinput,
+                     enum libinput_log_priority priority,
+                     const char *format,
+                     va_list args) {
+    const char *p;
+
+    switch (priority) {
+    case LIBINPUT_LOG_PRIORITY_DEBUG: p = "DEBUG"; break;
+    case LIBINPUT_LOG_PRIORITY_INFO:  p = "INFO";  break;
+    case LIBINPUT_LOG_PRIORITY_ERROR: p = "ERROR"; break;
+    default:                          p = "?";     break;
+    }
+
+    fprintf(stderr, "[libinput %s] ", p);
+    vfprintf(stderr, format, args);
+}
+
 int
 main(void)
 {
@@ -47,6 +65,9 @@ main(void)
 	if (!li) {
 		fprintf(stderr, ">>> libinput_udev_create_context failed\n");
 		return 1;
+	} else {
+		libinput_log_set_handler(li, libopeninput_log_handler);
+		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
 	}
 
 	if (libinput_udev_assign_seat(li, "seat0") != 0) {
