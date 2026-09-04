@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <errno.h>
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -10,8 +12,10 @@ static int
 open_restricted(const char *path, int flags, void *user_data)
 {
 	int fd = open(path, flags);
-	if (fd < 0)
-		perror(path);
+	if (fd < 0) {
+		fprintf(stderr, "%s: %s\n", path, strerror(errno));
+		return -errno;
+	}
 	return fd;
 }
 
